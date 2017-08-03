@@ -5,3 +5,4 @@
 */Build
 BuildingEscape/Content/StarterContent/
 *.VC.db
+*.ipch
