@@ -24,8 +24,11 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
+	UPROPERTY(EditAnywhere)
+	ATriggerVolume* pressurePlate;
 	AActor* Owner = GetOwner();
 	FRotator Rotation;
+	UPROPERTY(VisibleAnywhere)
 	float yvalue = 0.0f;
 
 		
