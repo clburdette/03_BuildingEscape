@@ -11,7 +11,6 @@ UpositionReporter::UpositionReporter()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
 }
 
 
@@ -20,7 +19,9 @@ void UpositionReporter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	FString name = GetOwner()->GetName();
+	FString pos = GetOwner()->GetActorLocation().ToString();
+	UE_LOG(LogTemp, Warning, TEXT("%s at %s"), *name, *pos);
 	
 }
 
