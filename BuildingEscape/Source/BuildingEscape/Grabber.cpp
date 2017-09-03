@@ -2,7 +2,6 @@
 
 #include "BuildingEscape.h"
 #include "Grabber.h"
-//#include "Runtime/Core/Public/Math/Color.h"
 
 
 // Sets default values for this component's properties
@@ -20,9 +19,8 @@ UGrabber::UGrabber()
 void UGrabber::BeginPlay()
 {
 	Super::BeginPlay();
-
-	UE_LOG(LogTemp, Warning, TEXT("Grabber reporting for duty!"));
-	
+	FindPhysicsHandle();
+	FindInputComponents();
 }
 
 
@@ -30,18 +28,70 @@ void UGrabber::BeginPlay()
 void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(ViewpointPosition, ViewpointRotation);
-	//UE_LOG(LogTemp, Warning, TEXT("Position: %s, Rotation: %s"),*ViewpointPosition.ToString(),*ViewpointRotation.ToString());
-	FVector testLine = ViewpointPosition + ViewpointRotation.Vector() * reach;
-	DrawDebugLine(GetWorld(), ViewpointPosition, testLine, FColor::Red, false, 0.0f, 0.0f, 5.0f);
-	FCollisionQueryParams TraceParams(FName(TEXT("")), false, GetOwner());
-	GetWorld()->LineTraceSingleByObjectType(OUT Hit, ViewpointPosition, testLine,
-		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody), TraceParams);
-	HitActor = Hit.GetActor();
-	if (HitActor)
+	
+	if (PhysicsHandle->GrabbedComponent)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Trace Hit Actor: %s"), *HitActor->GetName());
+		SetTestLinePos();
+		PhysicsHandle->SetTargetLocation(TestLine);
 	}
+}
+
+void UGrabber::Grab()
+{
+	SetFHitResult();
+	if (HitResultActor)
+	{
+		PhysicsHandle->GrabComponent(
+			Hit.GetComponent(),
+			NAME_None,
+			Hit.GetComponent()->GetOwner()->GetActorLocation(),
+			true
+		);
+	}
+}
+
+void UGrabber::Release()
+{
+	PhysicsHandle->ReleaseComponent();
+}
+
+void UGrabber::FindPhysicsHandle()
+{
+	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
+	if (PhysicsHandle) {}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Physics handle component missing from: %s"), *GetOwner()->GetName());
+	}
+}
+
+void UGrabber::FindInputComponents()
+{
+	InputComp = GetOwner()->FindComponentByClass<UInputComponent>();
+	if (InputComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Input component found!"));
+		InputComp->BindAction("Grab", IE_Pressed, this, &UGrabber::Grab);
+		InputComp->BindAction("Grab", IE_Released, this, &UGrabber::Release);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Input component missing from: %s"), *GetOwner()->GetName());
+	}
+}
+
+void UGrabber::SetFHitResult()
+{
+	SetTestLinePos();
+	FCollisionQueryParams TraceParams(FName(TEXT("")), false, GetOwner());
+	GetWorld()->LineTraceSingleByObjectType(OUT Hit, ViewpointPosition, TestLine,
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody), TraceParams);
+	HitResultActor = Hit.GetActor();
+}
+
+void UGrabber::SetTestLinePos()
+{
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(ViewpointPosition, ViewpointRotation);
+	TestLine = ViewpointPosition + ViewpointRotation.Vector() * reach;
 }
 

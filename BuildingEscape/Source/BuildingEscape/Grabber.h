@@ -2,7 +2,9 @@
 
 #pragma once
 
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "Components/ActorComponent.h"
+#include "Components/InputComponent.h"
 #include "Grabber.generated.h"
 
 
@@ -14,12 +16,17 @@ class BUILDINGESCAPE_API UGrabber : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UGrabber();
-	FVector ViewpointPosition;
+	FVector ViewpointPosition = { 0.0f, 0.0f, 0.0f };
+	FVector TestLine = { 0.0f, 0.0f, 0.0f };
 	FRotator ViewpointRotation;
 	FHitResult Hit;
-	AActor* HitActor = NULL;
+	AActor* HitResultActor = nullptr;
 	UPROPERTY(EditAnywhere)
 	float reach = 100.0f;
+	void FindPhysicsHandle();
+	void FindInputComponents();
+	void SetFHitResult();
+	void SetTestLinePos();
 
 
 protected:
@@ -30,6 +37,10 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-		
-	
+private:
+
+	UPhysicsHandleComponent* PhysicsHandle = nullptr;
+	UInputComponent* InputComp = nullptr;
+	void Grab();
+	void Release();
 };
